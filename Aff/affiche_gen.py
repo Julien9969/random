@@ -1,48 +1,53 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import os
 
-# Load the image
-image_path = "path/to/your/image.jpg"
-image = Image.open(image_path)
+FONT_SIZE = 62 
+FONT_COLOR = (255, 255, 255)  # white
+SHADOW_OFFSET = 5
 
-# Create a drawing object
-draw = ImageDraw.Draw(image)
+def openImage(file:str) -> Image:
+    image = Image.open(file)
+    image.resize((1280,720))
+    image.save("./image_temp.png", dpi=(72,72))
+    return Image.open("./image_temp.png")
 
-# Define the font properties
-font_path = "path/to/your/obitron_font.ttf"
-font_size = 36
-font_color = (255, 255, 255)  # white
+def loadFont() -> ImageFont:
+    return ImageFont.truetype("assets/Orbitron-Bold.ttf", FONT_SIZE)
 
-# Load the font
-font = ImageFont.truetype(font_path, font_size)
+def calculateTextPosition(image:Image, text:str, font:ImageFont) -> tuple:
+    _,_ ,text_width, text_height = font.getbbox(text)
+    x = (image.width - text_width) // 2
+    y = (image.height - text_height) // 2
+    return (x,y)
 
-# Define the text to be written
-text = "Bold Obitron Text"
+def addShadow(image:Image, text:str, font:ImageFont, x:int, y:int) -> Image:
+    shadow_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    shadow_draw = ImageDraw.Draw(shadow_image)
+    shadow_position = (x + SHADOW_OFFSET, y + SHADOW_OFFSET)
+    shadow_draw.text(shadow_position, text, font=font, fill=(0, 0, 0, 128))
+    return Image.alpha_composite(image.convert("RGBA"), shadow_image)
 
-# Calculate the text position
-text_width, text_height = draw.textsize(text, font)
-x = (image.width - text_width) // 2
-y = (image.height - text_height) // 2
+def drawText(image:Image, text:str, font:ImageFont, x:int, y:int) -> Image:
+    draw = ImageDraw.Draw(image)
+    draw.text((x, y), text, font=font, fill=FONT_COLOR, spacing=21)
+    return image
 
-# Define the border properties
-border_color = (0, 0, 0)  # black
-border_width = 2
+def saveImage(image:Image, output_path:str):
+    image.save(output_path)
+    os.remove("./image_temp.png")
 
-# Draw the text shadow
-shadow_offset = 4
-shadow_color = (0, 0, 0, 128)  # black with transparency
-shadow_position = (x + shadow_offset, y + shadow_offset)
-draw.text(shadow_position, text, font=font, fill=shadow_color)
+if __name__ == "__main__":
+    file = "./white_image.png"
+    image = openImage(file)
 
-# Draw the text on the image
-draw.text((x, y), text, font=font, fill=font_color)
+    font = loadFont()
+    print(image.info.get('dpi'))
 
-# Add a border to the text
-border_position = (x - border_width, y - border_width, x + text_width + border_width, y + text_height + border_width)
-draw.rectangle(border_position, outline=border_color, width=border_width)
+    text = "FILM 1 - EIKICHI ONIZUKA"
+    x_pos, y_pos = calculateTextPosition(image, text, font)
 
-# Apply a slight blur effect to the border and shadow
-image = image.filter(ImageFilter.BLUR)
+    image = addShadow(image, text, font, x_pos, y_pos)
 
-# Save the modified image
-output_path = "path/to/save/modified_image.jpg"
-image.save(output_path)
+    image = drawText(image, text, font, x_pos, y_pos)
+
+    saveImage(image, "./image_modifier.png")
