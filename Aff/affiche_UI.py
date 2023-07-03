@@ -9,7 +9,27 @@ imageList = [file for file in os.listdir("./") if file.endswith('.png') and not 
 
 image_preview:tk.Label
 photo: ImageTk.PhotoImage
-settings: tuple[int, int, bool] = (50, 35, True)
+
+def loadsettings() -> tuple[int, int, bool]:
+    try:
+        if os.path.exists("./conf.ini"):
+            with open("./conf.ini", "r") as file:
+                settings = file.read().split(',')
+                return (int(settings[0]), int(settings[1]), bool(settings[2]))
+        else:
+            with open("./conf.ini", "w") as file:
+                file.write("50,35,True")
+            return (50, 35, True)
+    except Exception:
+        return (50, 35, True)
+
+settings: tuple[int, int, bool] = loadsettings()
+
+def saveSettings():
+    global settings
+    with open("./conf.ini", "w") as file:
+        file.write(str(settings[0]) + "," + str(settings[1]) + "," + str(settings[2]))
+
 
 def preview_image():
     global image
@@ -55,7 +75,7 @@ def moveLogo(logo_position_slider: tk.Scale):
     preview_image()
 
 def setting_tab(window:tk):
-    global text_input
+    global text_input, settings
     setting_tab = tk.Frame(window, width=200, height=200, bg="#202020")
     setting_tab.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
     setting_tab.grid_columnconfigure(1, weight=1)
@@ -83,13 +103,13 @@ def setting_tab(window:tk):
     logo_size_slider = tk.Scale(slider_and_button_frame, from_=10, to=150, orient=tk.HORIZONTAL, bg="#202020", fg="white", label="Logo taille")
     logo_size_slider.bind("<ButtonRelease-1>", lambda e : resizeLogo(logo_size_slider))
     logo_size_slider.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-    logo_size_slider.set(50)
+    logo_size_slider.set(settings[0])
 
     # logo position slider
     logo_position_slider = tk.Scale(slider_and_button_frame, from_=0, to=100, orient=tk.HORIZONTAL, bg="#202020", fg="white", label="Logo distance bord")
     logo_position_slider.bind("<ButtonRelease-1>", lambda e : moveLogo(logo_position_slider))
     logo_position_slider.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-    logo_position_slider.set(35)
+    logo_position_slider.set(settings[1])
 
     # text input
     text_input = tk.Entry(setting_tab, bg="white", fg="black", font=("Arial", 12, "bold"), border=1)
@@ -152,3 +172,4 @@ if __name__ == "__main__":
     preview_image()
     window.mainloop()
     os.remove("./assets/image_temp.png")
+    saveSettings()
