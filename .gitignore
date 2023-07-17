@@ -1,3 +1,14 @@
 Aff/assets/*
 *.png
 *.webp
+__pycache__/*
+*.ico
+*aff.rar
+*.spec
+Aff/dist/*
+Aff/build/*
+
+*.ass
+cr links/multi-downloader-nx-windows-cli/multi-downloader-nx-windows64-cli/logs
+node_modules/
+*.log

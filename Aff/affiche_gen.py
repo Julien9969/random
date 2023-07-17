@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageTk
-import os
+import os, sys
 
 FONT_SIZE = 62 
 FONT_COLOR = (255, 255, 255)  # white
@@ -7,14 +7,34 @@ SHADOW_OFFSET = 5
 
 settings: tuple[int, int, bool]
 
-def openImage(file:str) -> Image:
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+def loadBaseImage(file:str) -> Image:
     image = Image.open(file)
-    image.resize((1280,720))
-    image.save("./assets/image_temp.png", dpi=(72,72))
-    return Image.open("./assets/image_temp.png")
+
+    if round(image.width / image.height, 3) != round(16 / 9, 3):
+        img_front = image.resize((1440, 1080))
+        image_back = img_front.crop((0, 135, 1440, 945))
+        print(image_back.size)
+        
+        image = image_back.filter(ImageFilter.GaussianBlur(20))
+        image.paste(img_front.resize((1080, 810)), (180, 0))
+
+    # image.resize((1280,720))
+    image = image.resize((1280, 720)) 
+    # image = image.resize((1280, 720))
+
+    image.save(resource_path("./assets/image_temp.png"), dpi=(72,72))
+    return Image.open(resource_path("./assets/image_temp.png"))
 
 def loadFont() -> ImageFont:
-    return ImageFont.truetype("assets/Orbitron-Bold.ttf", FONT_SIZE)
+    return ImageFont.truetype(resource_path("./assets/Orbitron-Bold.ttf"), FONT_SIZE)
 
 def calculateTextPosition(image:Image, text:str, font:ImageFont) -> tuple:
     _,_ ,text_width, text_height = font.getbbox(text)
@@ -45,6 +65,14 @@ def addShadow(image:Image, text:str, font:ImageFont) -> Image:
     return Image.alpha_composite(image.convert("RGBA"), shadow_image)
 
 def clac_bot_and_top(text:str) -> tuple:
+    print(text)
+    if text.find('/') != -1:
+        print('found')
+        txt = text.split('/')
+        top = txt[0]
+        bot = txt[1]
+        return (top, bot)
+    
     bot = ""
     top = ""
     words = text.split(" ")
@@ -74,7 +102,7 @@ def drawText(image:Image, text:str, font:ImageFont) -> Image:
     return image
 
 def addLogoF(image:Image) -> Image:
-    logo = Image.open("./assets/logo.png")
+    logo = Image.open(resource_path("./assets/logo.png"))
     # logo = logo.resize((int(logo.width * 0.5), int(logo.height * 0.5)))
     
     if settings[2] == True:
@@ -98,7 +126,7 @@ def addLogoS(image:Image) -> Image:
 def renderImage(file:str, text, settings_: tuple[int, int, bool] = (50, 35, True)) -> Image:
     global settings 
     settings = settings_
-    image = openImage(file)
+    image = loadBaseImage(file)
 
     font = loadFont()
     print(image.info.get('dpi'))
@@ -114,7 +142,8 @@ def renderImage(file:str, text, settings_: tuple[int, int, bool] = (50, 35, True
 def saveImage(image:Image, fileName:str):
     os.mkdir("./png") if not os.path.exists("./png") else None
     os.mkdir("./webp") if not os.path.exists("./webp") else None
+    os.mkdir("./raw") if not os.path.exists("./raw") else None
 
-    image.save("./png/" + fileName + ".png", dpi=(72,72))
-    image.save("./webp/" + fileName + ".webp", dpi=(72,72))
+    image.save("./png/" + fileName.replace('/', '') + ".png", dpi=(72,72))
+    image.save("./webp/" + fileName.replace('/', '') + ".webp", dpi=(72,72))
 

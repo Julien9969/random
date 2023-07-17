@@ -1,0 +1,17 @@
+Film Affiche Gen
+App permettant de faire simplement les affiches de film
+Dans le cas d'une image 4:3, un flou avec l'image crop sera ajouté pour faire une affiche en 16:9
+
+Instructions :
+!! Support du png uniquement!!
+
+1 - Mettre les images vierges dans le même dossier que l'exe
+2 - Mettre le logo de la serie et le renomer "logo.png" 
+3 - Ouvrir l'app 
+5 - Modifier le titre si nécessaire et valider pour aperçu (le titre par defaut sera celui de l'image)
+	5.5 le retour a la ligne est automatique si le titre est trop long, si vous voulez choisir où le mettre
+	il faut ajouter un "/" à l'endroit voulut
+4 - Modifier la taille, position des élements (la prévisualisation se met à jour quand le clic est relaché)
+5 - "Save" pour enregistrer l'affiche en png et webp + déplacement de l'image de base dans un dossier raw et passer à l'image suivante
+
+
